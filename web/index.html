@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Creator reputation</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101513;
+      --panel: #18211e;
+      --line: #2c3b36;
+      --text: #e7f2ec;
+      --muted: #8eaaa0;
+      --signal: #3dbe9a;
+      --warn: #e07a5f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(880px 380px at 0% -10%, #16382e 0%, transparent 55%),
+        var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", "Avenir Next", sans-serif;
+    }
+    header, main { width: min(1100px, calc(100% - 32px)); margin: 0 auto; }
+    header { padding: 28px 0 18px; border-bottom: 1px solid var(--line); }
+    .eyebrow {
+      margin: 0 0 6px;
+      color: var(--signal);
+      font-family: Consolas, ui-monospace, monospace;
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    h1 { margin: 0; font-size: 36px; font-weight: 560; letter-spacing: -0.03em; }
+    header p { margin: 8px 0 0; max-width: 62ch; color: var(--muted); }
+    main { display: grid; gap: 22px; padding: 22px 0 48px; }
+    form { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; }
+    label {
+      display: grid;
+      gap: 6px;
+      flex: 1;
+      min-width: 240px;
+      color: var(--muted);
+      font-family: Consolas, ui-monospace, monospace;
+      font-size: 12px;
+    }
+    input, button {
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font: inherit;
+    }
+    button { cursor: pointer; color: var(--signal); }
+    .panel {
+      background: rgba(24, 33, 30, 0.94);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+    }
+    h2 { margin: 0 0 12px; font-size: 18px; }
+    .cluster { margin: 0 0 12px; font-family: Consolas, ui-monospace, monospace; color: var(--signal); }
+    .empty { color: var(--muted); margin: 0; }
+    ul { margin: 0 0 12px; padding-left: 18px; }
+    li { font-family: Consolas, ui-monospace, monospace; font-size: 12px; margin: 4px 0; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td {
+      text-align: left;
+      padding: 8px 6px;
+      border-bottom: 1px solid var(--line);
+      font-family: Consolas, ui-monospace, monospace;
+      font-size: 12px;
+      vertical-align: middle;
+    }
+    th { color: var(--muted); font-weight: 560; }
+    a { color: #9ad7ff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .held { color: var(--signal); }
+    .sold { color: var(--warn); }
+    @media (max-width: 720px) {
+      h1 { font-size: 30px; }
+      table { display: block; overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <p class="eyebrow">Pons V2 · Robinhood Chain</p>
+    <h1>Creator reputation</h1>
+    <p>Search a deployer or the wallet that first funded them. Rank is graduate survival, not how many tokens they launched.</p>
+  </header>
+  <main>
+    <form id="search">
+      <label>Wallet
+        <input id="address" name="address" placeholder="0x deployer or funder" autocomplete="off" spellcheck="false">
+      </label>
+      <button type="submit">Search</button>
+    </form>
+    <section class="panel">
+      <h2>Wallet</h2>
+      <p id="cluster" class="cluster"></p>
+      <ul id="deployers"></ul>
+      <table id="tokens">
+        <thead>
+          <tr>
+            <th>Token</th>
+            <th>Deployer</th>
+            <th>Graduation</th>
+            <th>Sell</th>
+            <th>24h</th>
+            <th>7d</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+    <section class="panel">
+      <h2>Leaderboard</h2>
+      <table id="board">
+        <thead>
+          <tr>
+            <th>Creator</th>
+            <th>7d survival</th>
+            <th>24h survival</th>
+            <th>Graduation</th>
+            <th>Median sell</th>
+            <th>7d cluster</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p id="board-empty" class="empty" hidden>No creator has 3 judged 7-day launches yet.</p>
+    </section>
+  </main>
+  <script>
+    const form = document.querySelector("#search");
+    const input = document.querySelector("#address");
+    const cluster = document.querySelector("#cluster");
+    const deployers = document.querySelector("#deployers");
+    const tokenBody = document.querySelector("#tokens tbody");
+    const boardBody = document.querySelector("#board tbody");
+    const boardEmpty = document.querySelector("#board-empty");
+
+    function cell(text, className) {
+      const node = document.createElement("td");
+      node.textContent = text;
+      if (className) node.className = className;
+      return node;
+    }
+
+    function link(href, text) {
+      const node = document.createElement("a");
+      node.href = href;
+      node.textContent = text;
+      node.rel = "noreferrer";
+      return node;
+    }
+
+    function short(address) {
+      if (!address || address.length < 12) return address || "";
+      return address.slice(0, 6) + "…" + address.slice(-4);
+    }
+
+    function percent(value) {
+      if (value == null || !Number.isFinite(value)) return "—";
+      return (value * 100).toFixed(1) + "%";
+    }
+
+    function sellText(sell) {
+      if (!sell || sell.status === "open") return "open";
+      if (sell.status === "held") return "held";
+      if (sell.seconds == null) return "sold";
+      return sell.seconds + "s";
+    }
+
+    function windowText(entry) {
+      if (!entry) return "—";
+      return entry.survived ? "survived" : "failed";
+    }
+
+    function tokenRow(token) {
+      const row = document.createElement("tr");
+      const tokenCell = document.createElement("td");
+      tokenCell.append(link("https://robinhoodchain.blockscout.com/token/" + token.token, token.symbol || short(token.token)));
+      const deployerCell = document.createElement("td");
+      deployerCell.append(link("https://robinhoodchain.blockscout.com/address/" + token.deployer, short(token.deployer)));
+      row.append(
+        tokenCell,
+        deployerCell,
+        cell(token.graduated ? "graduated" : "curve"),
+        cell(sellText(token.sell), token.sell && token.sell.status === "held" ? "held" : token.sell && token.sell.status === "sold" ? "sold" : ""),
+        cell(windowText(token.survival && token.survival["24h"])),
+        cell(windowText(token.survival && token.survival["7d"])),
+      );
+      return row;
+    }
+
+    function renderWallet(body) {
+      deployers.replaceChildren();
+      tokenBody.replaceChildren();
+      if (!body.deployer && !body.funder) {
+        cluster.textContent = "No indexed launches for this address";
+        return;
+      }
+      const seen = new Set();
+      const addToken = (token) => {
+        if (seen.has(token.token)) return;
+        seen.add(token.token);
+        tokenBody.append(tokenRow(token));
+      };
+      if (body.funder) {
+        cluster.textContent = "7-day cluster " + body.funder.clusterSize;
+        for (const deployer of body.funder.deployers) {
+          const item = document.createElement("li");
+          item.textContent = deployer.address + (deployer.inCluster ? " · in cluster" : " · older");
+          deployers.append(item);
+          for (const token of deployer.tokens) addToken(token);
+        }
+      }
+      if (body.deployer) {
+        if (!body.funder) {
+          cluster.textContent = body.deployer.clusterSize == null
+            ? "No funder indexed"
+            : "7-day cluster " + body.deployer.clusterSize;
+        }
+        const funder = body.deployer.funder;
+        if (funder) {
+          const item = document.createElement("li");
+          item.textContent = "funder " + funder.address;
+          deployers.prepend(item);
+        }
+        for (const token of body.deployer.tokens) addToken(token);
+      }
+    }
+
+    async function search(address) {
+      const response = await fetch("/api/wallets/" + encodeURIComponent(address));
+      const body = await response.json();
+      if (!response.ok) {
+        cluster.textContent = body.error || "Search failed";
+        deployers.replaceChildren();
+        tokenBody.replaceChildren();
+        return;
+      }
+      renderWallet(body);
+    }
+
+    function creatorRow(creator) {
+      const row = document.createElement("tr");
+      const who = document.createElement("td");
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = short(creator.deployer);
+      button.addEventListener("click", () => {
+        input.value = creator.deployer;
+        search(creator.deployer);
+      });
+      who.append(button);
+      const median = creator.medianSellSeconds == null ? "—" : Math.round(creator.medianSellSeconds) + "s";
+      row.append(
+        who,
+        cell(percent(creator.survival7d)),
+        cell(percent(creator.survival24h)),
+        cell(percent(creator.graduationRate)),
+        cell(median),
+        cell(String(creator.clusterSize)),
+      );
+      return row;
+    }
+
+    async function loadBoard() {
+      const response = await fetch("/api/leaderboard");
+      const body = await response.json();
+      const creators = body.creators || [];
+      boardBody.replaceChildren();
+      boardEmpty.hidden = creators.length > 0;
+      for (const creator of creators) boardBody.append(creatorRow(creator));
+    }
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const address = input.value.trim();
+      if (!address) return;
+      search(address);
+    });
+
+    loadBoard();
+  </script>
+</body>
+</html>
