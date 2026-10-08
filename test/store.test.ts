@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { DAY_SECONDS, WEEK_SECONDS } from "../src/survival.js";
 import { Store, type NewLaunch } from "../src/store.js";
 
 const now = 1_700_000_000;
@@ -115,5 +116,37 @@ test("no sell after 7 days is held, and an earlier exit replaces that", () => {
   const sold = store.wallet(deployer, now, 7).deployer?.tokens[0]?.sell;
   assert.equal(sold?.status, "sold");
   assert.equal(sold?.seconds, 15);
+  store.close();
+});
+
+test("a late liquidity snapshot cannot be judged, and a held mark waits for the pool scan", () => {
+  const store = new Store(":memory:");
+  const deployer = "0x9999999999999999999999999999999999999999";
+  const late = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
+  const covered = "0xabababababababababababababababababababab";
+  const waiting = "0xcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd";
+  const graduatedAt = now - 8 * 86_400;
+  store.insertLaunch(launch(late, deployer, graduatedAt - 100, 1));
+  store.noteGraduated(late, 2, graduatedAt);
+  store.setPool(late, "0x5656565656565656565656565656565656565656");
+  store.markPoolScanned(late);
+  store.saveSnapshot(late, { liquidityUsd: 10, creatorBalance: "5", at: graduatedAt + WEEK_SECONDS + 10 });
+  store.insertLaunch(launch(covered, deployer, graduatedAt - 50, 3));
+  store.noteGraduated(covered, 4, graduatedAt);
+  store.saveSnapshot(covered, { liquidityUsd: 10, creatorBalance: "5", at: graduatedAt + 60 });
+  store.setPool(covered, "0x1212121212121212121212121212121212121212");
+  store.insertLaunch(launch(waiting, deployer, now - WEEK_SECONDS, 8));
+  store.noteGraduated(waiting, 9, now - WEEK_SECONDS + 10);
+  store.setPool(waiting, "0x3434343434343434343434343434343434343434");
+
+  const due = store.listMarketDue(now, DAY_SECONDS, WEEK_SECONDS).map((row) => row.token);
+  assert.equal(due.includes(late), false);
+  assert.equal(due.includes(covered), true);
+  const open = () => store.wallet(deployer, now, 7).deployer?.tokens.find((row) => row.token === waiting)?.sell.status;
+  assert.equal(store.markHeldBefore(now), 1);
+  assert.equal(open(), "open");
+  store.markPoolScanned(waiting);
+  assert.equal(store.markHeldBefore(now), 1);
+  assert.equal(open(), "held");
   store.close();
 });

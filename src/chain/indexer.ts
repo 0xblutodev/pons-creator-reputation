@@ -147,25 +147,32 @@ async function scanCurveSells(
   clock: (block: number) => Promise<number>,
 ) {
   const curves = store.listCurveWatch(Number(to), chunkStartTime).filter((row) => row.curve);
-  for (const batch of chunks(curves, 20)) {
-    const byCurve = new Map(batch.map((row) => [row.curve, row]));
-    const addresses = [...byCurve.keys()].map((curve) => getAddress(curve));
-    const logs = (await mapRange(from, to, width, (start, end) =>
-      client.getLogs({
-        address: addresses,
-        event: curveSellEvent,
-        fromBlock: start,
-        toBlock: end,
-      }),
-    )) as DecodedLog[];
-    for (const log of logs) {
-      const curve = log.address ? lower(log.address) : null;
-      const row = curve ? byCurve.get(curve) : undefined;
-      if (!row || log.blockNumber == null || !log.transactionHash) continue;
-      const seller = textArg(namedArgs(log.args), "seller");
-      if (!seller || lower(seller) !== row.deployer) continue;
-      const block = Number(log.blockNumber);
-      store.noteExit(row.token, { block, at: await clock(block), tx: log.transactionHash });
+  const byDeployer = new Map<string, typeof curves>();
+  for (const row of curves) {
+    const group = byDeployer.get(row.deployer) ?? [];
+    group.push(row);
+    byDeployer.set(row.deployer, group);
+  }
+  for (const [deployer, rows] of byDeployer) {
+    for (const batch of chunks(rows, 20)) {
+      const byCurve = new Map(batch.map((row) => [row.curve, row]));
+      const addresses = [...byCurve.keys()].map((curve) => getAddress(curve));
+      const logs = (await mapRange(from, to, width, (start, end) =>
+        client.getLogs({
+          address: addresses,
+          event: curveSellEvent,
+          args: { seller: getAddress(deployer) },
+          fromBlock: start,
+          toBlock: end,
+        }),
+      )) as DecodedLog[];
+      for (const log of logs) {
+        const curve = log.address ? lower(log.address) : null;
+        const row = curve ? byCurve.get(curve) : undefined;
+        if (!row || log.blockNumber == null || !log.transactionHash) continue;
+        const block = Number(log.blockNumber);
+        store.noteExit(row.token, { block, at: await clock(block), tx: log.transactionHash });
+      }
     }
   }
 }
@@ -179,10 +186,7 @@ async function scanTransfers(
   clock: (block: number) => Promise<number>,
 ) {
   for (const row of store.listTransferWatch()) {
-    if (!row.pool || !isAddress(row.pool) || row.graduationBlock == null) {
-      store.markPoolScanned(row.token);
-      continue;
-    }
+    if (!row.pool || !isAddress(row.pool) || row.graduationBlock == null) continue;
     const deadline = row.launchedAt + WEEK_SECONDS;
     if (row.graduatedAt != null && row.graduatedAt > deadline) {
       store.markPoolScanned(row.token);

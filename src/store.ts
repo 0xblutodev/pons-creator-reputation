@@ -433,9 +433,11 @@ export class Store {
       .prepare(
         `UPDATE launches
          SET sell_status = 'held', updated_at = ?
-         WHERE sell_status = 'open' AND launched_at > 0 AND launched_at + ? <= ?`,
+         WHERE sell_status = 'open' AND launched_at > 0 AND launched_at + ? <= ?
+           AND NOT (graduated = 1 AND pool IS NULL AND launched_at + ? > ?)
+           AND NOT (pool IS NOT NULL AND pool_scanned = 0)`,
       )
-      .run(Date.now(), WEEK_SECONDS, now);
+      .run(Date.now(), WEEK_SECONDS, now, WEEK_SECONDS * 2, now);
     return Number(info.changes);
   }
 
@@ -444,19 +446,45 @@ export class Store {
       .prepare(
         `SELECT * FROM launches
          WHERE graduated = 1 AND (
-           grad_liquidity_usd IS NULL
-           OR grad_creator_balance IS NULL
-           OR pool IS NULL
-           OR (graduated_at > 0 AND graduated_at + ? <= ? AND NOT EXISTS (
-             SELECT 1 FROM checkpoints c WHERE c.token = launches.token AND c.window = '24h'
-           ))
-           OR (graduated_at > 0 AND graduated_at + ? <= ? AND NOT EXISTS (
-             SELECT 1 FROM checkpoints c WHERE c.token = launches.token AND c.window = '7d'
-           ))
+           (
+             (grad_liquidity_usd IS NULL OR grad_creator_balance IS NULL)
+             AND (
+               graduated_at IS NULL OR graduated_at <= 0 OR graduated_at + ? > ?
+               OR launched_at + ? > ?
+             )
+           )
+           OR (pool IS NULL AND sell_status != 'sold' AND launched_at + ? > ?)
+           OR (
+             graduated_at > 0 AND graduated_at + ? <= ?
+             AND grad_snapshot_at IS NOT NULL AND grad_snapshot_at < graduated_at + ?
+             AND NOT EXISTS (
+               SELECT 1 FROM checkpoints c WHERE c.token = launches.token AND c.window = '24h'
+             )
+           )
+           OR (
+             graduated_at > 0 AND graduated_at + ? <= ?
+             AND grad_snapshot_at IS NOT NULL AND grad_snapshot_at < graduated_at + ?
+             AND NOT EXISTS (
+               SELECT 1 FROM checkpoints c WHERE c.token = launches.token AND c.window = '7d'
+             )
+           )
          )
          ORDER BY launch_block`,
       )
-      .all(daySeconds, now, weekSeconds, now) as LaunchRow[];
+      .all(
+        weekSeconds,
+        now,
+        weekSeconds,
+        now,
+        weekSeconds * 2,
+        now,
+        daySeconds,
+        now,
+        daySeconds,
+        weekSeconds,
+        now,
+        weekSeconds,
+      ) as LaunchRow[];
     return rows.map(mapLaunch);
   }
 

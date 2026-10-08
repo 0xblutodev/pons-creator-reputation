@@ -213,8 +213,16 @@
         seen.add(token.token);
         tokenBody.append(tokenRow(token));
       };
+      const lines = [];
+      if (body.funder) lines.push("7-day cluster " + body.funder.clusterSize);
+      if (body.deployer) {
+        if (body.deployer.funder) lines.push("funder " + body.deployer.funder.address);
+        lines.push(body.deployer.clusterSize == null
+          ? "funder 7-day cluster unknown"
+          : (body.funder ? "funder 7-day cluster " : "7-day cluster ") + body.deployer.clusterSize);
+      }
+      cluster.textContent = lines.join(" · ");
       if (body.funder) {
-        cluster.textContent = "7-day cluster " + body.funder.clusterSize;
         for (const deployer of body.funder.deployers) {
           const item = document.createElement("li");
           item.textContent = deployer.address + (deployer.inCluster ? " · in cluster" : " · older");
@@ -223,11 +231,6 @@
         }
       }
       if (body.deployer) {
-        if (!body.funder) {
-          cluster.textContent = body.deployer.clusterSize == null
-            ? "No funder indexed"
-            : "7-day cluster " + body.deployer.clusterSize;
-        }
         const funder = body.deployer.funder;
         if (funder) {
           const item = document.createElement("li");

@@ -7,6 +7,7 @@ import { isZeroAddress, lower, sameAddress } from "../addresses.js";
  */
 export type InboundNative = {
   from: string;
+  to?: string;
   value: bigint;
   txHash: string;
   timestamp: number;
@@ -48,12 +49,19 @@ export function alchemyFunderQuery(deployer: string, toBlock: bigint): Record<st
   };
 }
 
-/** Earliest transfer with value, ignoring the deployer and the zero address. */
+/** A missing block number is kept; a known block after the launch is not this deployer's seed. */
+export function withinFunderBlock(row: InboundNative, toBlock: bigint): boolean {
+  if (row.blockNumber <= 0) return true;
+  return BigInt(row.blockNumber) <= toBlock;
+}
+
+/** Earliest inbound transfer with value, ignoring the deployer and the zero address. */
 export function pickFunder(transfers: readonly InboundNative[], deployer: string): InboundNative | null {
   const candidates = transfers.filter((row) => {
     if (row.value <= 0n) return false;
     if (!row.from || isZeroAddress(row.from)) return false;
     if (sameAddress(row.from, deployer)) return false;
+    if (row.to && !sameAddress(row.to, deployer)) return false;
     return true;
   });
   candidates.sort((left, right) => left.timestamp - right.timestamp || left.blockNumber - right.blockNumber);
@@ -123,12 +131,13 @@ export function parseAlchemyTransfers(transfers: readonly AlchemyTransfer[]): In
   return rows;
 }
 
-export function parseScoutTxs(rows: readonly ScoutTx[]): InboundNative[] {
+export function parseScoutTxs(rows: readonly ScoutTx[], recipient?: string): InboundNative[] {
   const parsed: InboundNative[] = [];
   for (const row of rows) {
     if (row.isError === "1") continue;
     const from = row.from;
     const hash = row.hash ?? row.transaction_hash;
+    if (recipient && (!row.to || !sameAddress(row.to, recipient))) continue;
     if (!from || !hash || typeof row.value !== "string") continue;
     let value: bigint;
     try {
@@ -142,6 +151,7 @@ export function parseScoutTxs(rows: readonly ScoutTx[]): InboundNative[] {
     const blockNumber = Number(row.blockNumber ?? 0);
     parsed.push({
       from: lower(from),
+      to: row.to ? lower(row.to) : undefined,
       value,
       txHash: hash.toLowerCase(),
       timestamp: Math.floor(timestamp),
@@ -158,7 +168,7 @@ function scoutAddress(value: unknown): string | null {
   return typeof hash === "string" ? hash : null;
 }
 
-export function parseScoutV2Items(items: readonly Record<string, unknown>[]): InboundNative[] {
+export function parseScoutV2Items(items: readonly Record<string, unknown>[], recipient?: string): InboundNative[] {
   const rows: ScoutTx[] = [];
   for (const item of items) {
     const from = scoutAddress(item.from);
@@ -175,7 +185,7 @@ export function parseScoutV2Items(items: readonly Record<string, unknown>[]): In
     if (!from || !to || !hash || !value) continue;
     rows.push({ from, to, hash, value, timestamp, blockNumber });
   }
-  return parseScoutTxs(rows);
+  return parseScoutTxs(rows, recipient);
 }
 
 async function alchemyInbound(httpUrl: string, deployer: string, toBlock: bigint): Promise<InboundNative[]> {
@@ -222,35 +232,46 @@ async function scoutV1Page(origin: string, action: "txlist" | "txlistinternal", 
 
 async function earliestScoutV1(origin: string, action: "txlist" | "txlistinternal", deployer: string, toBlock: bigint): Promise<InboundNative | null> {
   const rows: InboundNative[] = [];
-  for (let page = 1; page <= 5; page += 1) {
-    const batch = parseScoutTxs(await scoutV1Page(origin, action, deployer, toBlock, page));
-    if (batch.length === 0) break;
+  for (let page = 1; page <= 20; page += 1) {
+    const raw = await scoutV1Page(origin, action, deployer, toBlock, page);
+    if (raw.length === 0) return pickFunder(rows, deployer);
+    const batch = parseScoutTxs(raw, deployer).filter((row) => withinFunderBlock(row, toBlock));
     rows.push(...batch);
-    if (pickFunder(batch, deployer)) break;
+    if (pickFunder(batch, deployer) || raw.length < 100) return pickFunder(rows, deployer);
   }
-  return pickFunder(rows, deployer);
+  throw new Error(`blockscout ${action} truncated before the earliest inbound transfer`);
 }
 
-async function blockscoutV2(origin: string, deployer: string): Promise<InboundNative[]> {
+async function blockscoutV2(origin: string, deployer: string, toBlock: bigint): Promise<InboundNative[]> {
   const rows: InboundNative[] = [];
   for (const kind of ["transactions", "internal-transactions"] as const) {
     let next: string | null = `${origin}/api/v2/addresses/${deployer}/${kind}`;
-    for (let page = 0; page < 15 && next; page += 1) {
+    for (let page = 0; page < 40; page += 1) {
+      if (!next) break;
       const response = await fetch(next, { signal: AbortSignal.timeout(20_000) });
       if (!response.ok) throw new Error(`blockscout ${response.status}`);
       const payload = (await response.json()) as {
         items?: Record<string, unknown>[];
         next_page_params?: Record<string, unknown> | null;
       };
-      rows.push(...parseScoutV2Items(payload.items ?? []));
+      const batch = parseScoutV2Items(payload.items ?? [], deployer).filter((row) => withinFunderBlock(row, toBlock));
+      rows.push(...batch);
       const params = payload.next_page_params;
-      if (!params) break;
+      if (!params) {
+        next = null;
+        break;
+      }
+      if (page === 39) throw new Error(`blockscout ${kind} truncated before the earliest inbound transfer`);
       const nextUrl = new URL(next);
       for (const [key, value] of Object.entries(params)) nextUrl.searchParams.set(key, String(value));
       next = nextUrl.toString();
     }
   }
   return rows;
+}
+
+function truncatedHistory(error: unknown): boolean {
+  return error instanceof Error && error.message.includes("truncated");
 }
 
 async function blockscoutInbound(origin: string, deployer: string, toBlock: bigint): Promise<InboundNative[]> {
@@ -261,9 +282,10 @@ async function blockscoutInbound(origin: string, deployer: string, toBlock: bigi
     ]);
     return [external, internal].filter((row): row is InboundNative => row != null);
   } catch (error) {
+    if (truncatedHistory(error)) throw error;
     console.error("[funder] blockscout v1", error instanceof Error ? error.message : error);
   }
-  return blockscoutV2(origin, deployer);
+  return blockscoutV2(origin, deployer, toBlock);
 }
 
 /**
