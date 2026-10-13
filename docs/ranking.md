@@ -13,3 +13,4 @@
 - A higher 7-day survival rate ranks first even when the creator has fewer launches.
 - Each leaderboard row carries the deployer, funder, launches, graduated count, rates, judged count, median sell seconds, and cluster size.
 - The leaderboard API returns 50 rows by default and never more than 200.
+- Held launches contribute no sell time and are left out of the median.
