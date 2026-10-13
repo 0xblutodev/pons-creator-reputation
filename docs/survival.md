@@ -5,3 +5,4 @@
 - The creator dumped when their token balance fell by 10% or more from the graduation snapshot.
 - A creator who already exited counts as having dumped.
 - A window survives only when liquidity stayed and the creator did not dump.
+- A missing DexScreener quote is retried on the next cron instead of closing the window.
