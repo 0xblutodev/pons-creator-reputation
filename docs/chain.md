@@ -6,3 +6,4 @@
 - The chain definition points its default block explorer at Blockscout.
 - `tokenUrl` builds `https://robinhoodchain.blockscout.com/token/<address>`.
 - `addressUrl` builds `https://robinhoodchain.blockscout.com/address/<address>`.
+- Address helpers lowercase values before comparing them.
