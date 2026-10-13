@@ -8,3 +8,4 @@
 - Graduation rate is graduated launches divided by total launches, and 0 when there are no launches.
 - Survival rate is survived windows divided by judged windows, and null when none are judged.
 - Median time to sell uses sold launches only, and averages the two middle values for an even count.
+- The median is null when no launch has a recorded sell.
