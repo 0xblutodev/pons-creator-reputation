@@ -6,3 +6,4 @@
 - `npm run index` is a one-shot run; each run continues from the stored cursor.
 - With no cursor and no `FROM_BLOCK`, the first run starts 30 days back by default.
 - A log range rejected as too wide is split in half and retried until a single block fails.
+- Log queries walk the block range in `LOG_CHUNK_BLOCKS` slices (default 2000).
