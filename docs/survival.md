@@ -4,3 +4,4 @@
 - Liquidity stayed when the pair still exists and USD liquidity is at least half of the first post-graduation reading.
 - The creator dumped when their token balance fell by 10% or more from the graduation snapshot.
 - A creator who already exited counts as having dumped.
+- A window survives only when liquidity stayed and the creator did not dump.
