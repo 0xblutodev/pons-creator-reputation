@@ -12,3 +12,4 @@
 - A zero or negative snapshot balance is never treated as a dump.
 - Non-finite liquidity readings count as liquidity not stayed.
 - The half-baseline comparison adds a `1e-9` tolerance so an exact 50% reading counts as stayed.
+- Liquidity comes from DexScreener pairs on Robinhood Chain; the pair with the highest USD liquidity is used.
