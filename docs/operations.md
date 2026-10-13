@@ -6,3 +6,4 @@
 - The HTTP server and the indexer run as separate processes and share only the SQLite file.
 - `npm run dev` restarts the server on file changes.
 - `npm run typecheck` runs `tsc --noEmit` without writing output.
+- `npm test` runs `test/*.test.ts` with the Node test runner and `tsx`.
