@@ -13,3 +13,4 @@
 - `createApp` accepts a `now` function so tests can pin the clock.
 - The server passes `CLUSTER_WINDOW_DAYS` to the store when it builds wallet and leaderboard responses.
 - The server logs its listening URL on startup, for example `http://localhost:8789`.
+- All routes are GET-only; the API has no write endpoints.
