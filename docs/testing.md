@@ -6,3 +6,4 @@
 - A snapshot taken after the window is covered by a judge test and cannot close it.
 - `test/rank.test.ts` covers 7-day ordering, the 3-launch minimum, and the sold-only median.
 - `test/store.test.ts` exercises clustering, leaderboard order, and held launches against SQLite.
+- `test/funder.test.ts` covers earliest-transfer selection and the Alchemy query shape.
