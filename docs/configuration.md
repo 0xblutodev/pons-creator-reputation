@@ -7,3 +7,4 @@
 - `LOOKBACK_DAYS` defaults to 30 and is clamped to at least 1 day; it is converted to seconds when the config loads.
 - `CLUSTER_WINDOW_DAYS` defaults to 7 and is clamped to at least 1 day.
 - `BLOCKSCOUT_ORIGIN` defaults to `https://robinhoodchain.blockscout.com`; a trailing slash is stripped.
+- `FROM_BLOCK` sets the first block to scan, but only when the database has no stored cursor.
