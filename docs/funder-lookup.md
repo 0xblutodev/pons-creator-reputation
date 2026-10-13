@@ -11,3 +11,4 @@
 - Only transfers at or before the first indexed launch block are eligible as the funder.
 - A funder's cluster size is the number of distinct deployers they seeded whose first indexed launch falls inside the trailing window.
 - The cluster window defaults to 7 days and is set with `CLUSTER_WINDOW_DAYS`.
+- The wallet page still lists older deployers that fall outside the cluster window.
