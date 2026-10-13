@@ -5,3 +5,4 @@
 - The chain definition uses Ether with 18 decimals as the native currency.
 - The chain definition points its default block explorer at Blockscout.
 - `tokenUrl` builds `https://robinhoodchain.blockscout.com/token/<address>`.
+- `addressUrl` builds `https://robinhoodchain.blockscout.com/address/<address>`.
