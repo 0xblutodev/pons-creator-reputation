@@ -6,3 +6,4 @@
 - `LOG_CHUNK_BLOCKS` defaults to 2000 and is clamped to at least 100 blocks per `eth_getLogs` span.
 - `LOOKBACK_DAYS` defaults to 30 and is clamped to at least 1 day; it is converted to seconds when the config loads.
 - `CLUSTER_WINDOW_DAYS` defaults to 7 and is clamped to at least 1 day.
+- `BLOCKSCOUT_ORIGIN` defaults to `https://robinhoodchain.blockscout.com`; a trailing slash is stripped.
