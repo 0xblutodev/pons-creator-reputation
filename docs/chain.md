@@ -13,3 +13,4 @@
 - The chain client is built from a single HTTP URL supplied through `ALCHEMY_HTTP_URL`.
 - DexScreener pairs are kept only when their chain id contains `robin` or equals `4663`.
 - When several pairs match, the one with the highest USD liquidity is used.
+- `mapRange` recursively halves a block span when a log query is rejected.
