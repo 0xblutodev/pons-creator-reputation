@@ -8,3 +8,4 @@
 - A `limit` that is not a number falls back to the default of 50.
 - `GET /health` returns `{ "ok": true }` for liveness probes.
 - `GET /` serves `web/index.html`.
+- The page talks to this process and does not embed an RPC key.
