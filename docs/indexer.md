@@ -12,3 +12,4 @@
 - Sell speed is the time from the launch timestamp to the creator's first `CurveSell`, or to the first token transfer from the deployer into the graduated pool.
 - A creator with no exit after 7 days is stored as held, and an earlier exit replaces that mark.
 - After graduation the cron snapshots DexScreener liquidity and the creator's token balance.
+- Launches are judged at 24 hours and again at 7 days after graduation.
