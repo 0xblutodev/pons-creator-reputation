@@ -6,3 +6,4 @@
 - A truncated explorer history is left unresolved and retried on the next cron.
 - A creator whose funder is unresolved is reported with a null funder.
 - An earlier outbound transfer does not beat a later inbound one when picking the funder.
+- Transfers from the deployer to itself are ignored when picking the funder.
