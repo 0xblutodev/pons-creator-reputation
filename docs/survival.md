@@ -10,3 +10,4 @@
 - The baseline snapshot has to predate the end of the window, otherwise a later check would compare a quote to itself.
 - The 24-hour window can close while the 7-day window is still running.
 - A zero or negative snapshot balance is never treated as a dump.
+- Non-finite liquidity readings count as liquidity not stayed.
