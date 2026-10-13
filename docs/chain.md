@@ -8,3 +8,4 @@
 - `addressUrl` builds `https://robinhoodchain.blockscout.com/address/<address>`.
 - Address helpers lowercase values before comparing them.
 - `isZeroAddress` treats mixed-case zero addresses as zero.
+- `sameAddress` compares addresses case-insensitively.
