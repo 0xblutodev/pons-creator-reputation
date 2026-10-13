@@ -10,3 +10,4 @@
 - `isZeroAddress` treats mixed-case zero addresses as zero.
 - `sameAddress` compares addresses case-insensitively.
 - Flap launches share the chain but are a different venue and are not read.
+- The chain client is built from a single HTTP URL supplied through `ALCHEMY_HTTP_URL`.
