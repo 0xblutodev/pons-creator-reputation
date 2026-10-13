@@ -12,3 +12,4 @@
 - Deleting the database file makes the next `npm run index` rebuild from `FROM_BLOCK` or the 30-day lookback.
 - Missing quotes and truncated explorer history are retried automatically on the next cron run.
 - Point a process monitor at `/health` to check that the server is up.
+- Without `ALCHEMY_HTTP_URL`, the indexer has no endpoint to use and does not fall back to a public RPC.
