@@ -8,3 +8,4 @@
 - `test/store.test.ts` exercises clustering, leaderboard order, and held launches against SQLite.
 - `test/funder.test.ts` covers earliest-transfer selection and the Alchemy query shape.
 - `test/decode.test.ts` round-trips `TokenLaunched` and checks that the third indexed topic is the deployer.
+- `test/api.test.ts` checks that wallet search and the leaderboard read from the index.
