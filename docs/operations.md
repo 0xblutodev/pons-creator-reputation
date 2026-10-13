@@ -8,3 +8,4 @@
 - `npm run typecheck` runs `tsc --noEmit` without writing output.
 - `npm test` runs `test/*.test.ts` with the Node test runner and `tsx`.
 - Index state lives in `data/reputation.sqlite`, which is git-ignored.
+- Copy the SQLite file together with any `-wal` file when taking a backup while the server is running.
