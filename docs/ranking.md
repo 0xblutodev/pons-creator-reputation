@@ -7,3 +7,4 @@
 - When 7-day survival ties, a creator with no judged 24-hour launches sorts after one that has a rate.
 - Graduation rate is graduated launches divided by total launches, and 0 when there are no launches.
 - Survival rate is survived windows divided by judged windows, and null when none are judged.
+- Median time to sell uses sold launches only, and averages the two middle values for an even count.
