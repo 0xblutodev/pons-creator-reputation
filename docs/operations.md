@@ -11,3 +11,4 @@
 - Copy the SQLite file together with any `-wal` file when taking a backup while the server is running.
 - Deleting the database file makes the next `npm run index` rebuild from `FROM_BLOCK` or the 30-day lookback.
 - Missing quotes and truncated explorer history are retried automatically on the next cron run.
+- Point a process monitor at `/health` to check that the server is up.
