@@ -9,3 +9,4 @@
 - Survival rate is survived windows divided by judged windows, and null when none are judged.
 - Median time to sell uses sold launches only, and averages the two middle values for an even count.
 - The median is null when no launch has a recorded sell.
+- The 3-launch minimum is exported as `MIN_JUDGED_7D` and can be overridden per call.
