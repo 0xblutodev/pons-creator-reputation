@@ -10,3 +10,4 @@
 - `FROM_BLOCK` sets the first block to scan, but only when the database has no stored cursor.
 - A `FROM_BLOCK` that is not an integer fails startup with `FROM_BLOCK must be an integer block number`.
 - Numeric settings that do not parse fail with `<NAME> must be a number` instead of silently using a default.
+- Empty or whitespace-only numeric values fall back to their defaults.
