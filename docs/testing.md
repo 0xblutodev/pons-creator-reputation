@@ -13,3 +13,4 @@
 - jsdom is a dev dependency used only by the dashboard test.
 - Run a single file with `node --experimental-sqlite --import tsx --test test/rank.test.ts`.
 - Run `npm run typecheck` alongside `npm test` before merging.
+- `survival.ts`, `rank.ts`, and `cluster.ts` are pure functions, so their tests need no network access.
