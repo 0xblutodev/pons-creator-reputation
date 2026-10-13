@@ -10,3 +10,4 @@
 - Flap `TokenCreated` is a different venue and is not indexed.
 - The service is read-only: it never submits launches or transfers.
 - Sell speed is the time from the launch timestamp to the creator's first `CurveSell`, or to the first token transfer from the deployer into the graduated pool.
+- A creator with no exit after 7 days is stored as held, and an earlier exit replaces that mark.
