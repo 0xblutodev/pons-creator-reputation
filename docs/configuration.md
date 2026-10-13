@@ -14,3 +14,4 @@
 - `LOOKBACK_DAYS`, `CLUSTER_WINDOW_DAYS`, `PORT`, and `LOG_CHUNK_BLOCKS` are floored to whole numbers before the clamp is applied.
 - `.env`, `data/`, and the SQLite journal, WAL, and SHM files are git-ignored so credentials and index state stay local.
 - Node 22.13 or newer is required; the scripts pass `--experimental-sqlite` to enable the built-in SQLite module.
+- `.env.example` lists every supported variable; copy it to `.env` before the first run.
