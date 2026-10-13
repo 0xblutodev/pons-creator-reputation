@@ -11,3 +11,4 @@
 - `test/api.test.ts` checks that wallet search and the leaderboard read from the index.
 - `test/dashboard.test.ts` renders the page with jsdom and checks the token table and cluster line.
 - jsdom is a dev dependency used only by the dashboard test.
+- Run a single file with `node --experimental-sqlite --import tsx --test test/rank.test.ts`.
