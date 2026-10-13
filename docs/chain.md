@@ -11,3 +11,4 @@
 - `sameAddress` compares addresses case-insensitively.
 - Flap launches share the chain but are a different venue and are not read.
 - The chain client is built from a single HTTP URL supplied through `ALCHEMY_HTTP_URL`.
+- DexScreener pairs are kept only when their chain id contains `robin` or equals `4663`.
