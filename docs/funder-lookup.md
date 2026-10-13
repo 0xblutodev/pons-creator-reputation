@@ -7,3 +7,4 @@
 - A creator whose funder is unresolved is reported with a null funder.
 - An earlier outbound transfer does not beat a later inbound one when picking the funder.
 - Transfers from the deployer to itself are ignored when picking the funder.
+- The Alchemy funder query asks for the earliest single inbound native transfer.
