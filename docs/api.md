@@ -10,3 +10,4 @@
 - `GET /` serves `web/index.html`.
 - The page talks to this process and does not embed an RPC key.
 - Addresses are validated with viem's `isAddress`.
+- `createApp` accepts a `now` function so tests can pin the clock.
