@@ -7,3 +7,4 @@
 - `test/rank.test.ts` covers 7-day ordering, the 3-launch minimum, and the sold-only median.
 - `test/store.test.ts` exercises clustering, leaderboard order, and held launches against SQLite.
 - `test/funder.test.ts` covers earliest-transfer selection and the Alchemy query shape.
+- `test/decode.test.ts` round-trips `TokenLaunched` and checks that the third indexed topic is the deployer.
