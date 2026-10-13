@@ -8,3 +8,4 @@
 - A missing DexScreener quote is retried on the next cron instead of closing the window.
 - A window is written only after it has fully elapsed since graduation.
 - The baseline snapshot has to predate the end of the window, otherwise a later check would compare a quote to itself.
+- The 24-hour window can close while the 7-day window is still running.
