@@ -3,3 +3,4 @@
 - `GET /api/wallets/:address` accepts a deployer, a funder, or an address that is both.
 - An address with no indexed rows returns an empty result and does not trigger a live chain scan.
 - An invalid address returns HTTP 400 with `{ "error": "invalid address" }`.
+- `GET /api/leaderboard?limit=` returns ranked creators under a `creators` key.
