@@ -11,3 +11,4 @@
 - The 24-hour window can close while the 7-day window is still running.
 - A zero or negative snapshot balance is never treated as a dump.
 - Non-finite liquidity readings count as liquidity not stayed.
+- The half-baseline comparison adds a `1e-9` tolerance so an exact 50% reading counts as stayed.
