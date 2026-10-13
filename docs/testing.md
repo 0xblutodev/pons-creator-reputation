@@ -10,3 +10,4 @@
 - `test/decode.test.ts` round-trips `TokenLaunched` and checks that the third indexed topic is the deployer.
 - `test/api.test.ts` checks that wallet search and the leaderboard read from the index.
 - `test/dashboard.test.ts` renders the page with jsdom and checks the token table and cluster line.
+- jsdom is a dev dependency used only by the dashboard test.
