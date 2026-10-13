@@ -11,3 +11,4 @@
 - A `FROM_BLOCK` that is not an integer fails startup with `FROM_BLOCK must be an integer block number`.
 - Numeric settings that do not parse fail with `<NAME> must be a number` instead of silently using a default.
 - Empty or whitespace-only numeric values fall back to their defaults.
+- `LOOKBACK_DAYS`, `CLUSTER_WINDOW_DAYS`, `PORT`, and `LOG_CHUNK_BLOCKS` are floored to whole numbers before the clamp is applied.
