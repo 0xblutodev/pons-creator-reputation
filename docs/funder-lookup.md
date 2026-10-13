@@ -9,3 +9,4 @@
 - Transfers from the deployer to itself are ignored when picking the funder.
 - The Alchemy funder query asks for the earliest single inbound native transfer.
 - Only transfers at or before the first indexed launch block are eligible as the funder.
+- A funder's cluster size is the number of distinct deployers they seeded whose first indexed launch falls inside the trailing window.
