@@ -6,3 +6,4 @@
 - `GET /api/leaderboard?limit=` returns ranked creators under a `creators` key.
 - `limit` defaults to 50 and is clamped between 1 and 200.
 - A `limit` that is not a number falls back to the default of 50.
+- `GET /health` returns `{ "ok": true }` for liveness probes.
