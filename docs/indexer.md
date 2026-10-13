@@ -9,3 +9,4 @@
 - Log queries walk the block range in `LOG_CHUNK_BLOCKS` slices (default 2000).
 - Flap `TokenCreated` is a different venue and is not indexed.
 - The service is read-only: it never submits launches or transfers.
+- Sell speed is the time from the launch timestamp to the creator's first `CurveSell`, or to the first token transfer from the deployer into the graduated pool.
