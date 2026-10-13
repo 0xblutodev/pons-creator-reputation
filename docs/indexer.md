@@ -14,3 +14,4 @@
 - After graduation the cron snapshots DexScreener liquidity and the creator's token balance.
 - Launches are judged at 24 hours and again at 7 days after graduation.
 - The `TokenLaunched` decode test pins the third indexed topic as the deployer address.
+- A liquidity snapshot taken after a window has closed cannot be used to judge that window.
