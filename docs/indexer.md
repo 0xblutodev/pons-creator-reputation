@@ -13,3 +13,4 @@
 - A creator with no exit after 7 days is stored as held, and an earlier exit replaces that mark.
 - After graduation the cron snapshots DexScreener liquidity and the creator's token balance.
 - Launches are judged at 24 hours and again at 7 days after graduation.
+- The `TokenLaunched` decode test pins the third indexed topic as the deployer address.
