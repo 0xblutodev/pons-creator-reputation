@@ -7,3 +7,4 @@
 - `tokenUrl` builds `https://robinhoodchain.blockscout.com/token/<address>`.
 - `addressUrl` builds `https://robinhoodchain.blockscout.com/address/<address>`.
 - Address helpers lowercase values before comparing them.
+- `isZeroAddress` treats mixed-case zero addresses as zero.
