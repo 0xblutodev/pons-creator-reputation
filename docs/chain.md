@@ -9,3 +9,4 @@
 - Address helpers lowercase values before comparing them.
 - `isZeroAddress` treats mixed-case zero addresses as zero.
 - `sameAddress` compares addresses case-insensitively.
+- Flap launches share the chain but are a different venue and are not read.
